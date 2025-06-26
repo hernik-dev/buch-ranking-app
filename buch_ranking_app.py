@@ -23,21 +23,18 @@ books = [
 
 st.title("📚 Buchclub: The Ranking")
 
-# --- Hilfsfunktion: initiale Liste in Einzel-Listen packen ---
 def init_sort_lists(items):
     return [[item] for item in items]
 
-# --- State-Initialisierung ---
 if "lists" not in st.session_state:
-    st.session_state.lists = init_sort_lists(books)  # Liste von Listen (Teil-Sortierungen)
-    st.session_state.left = None  # linke Liste zum Mergen
-    st.session_state.right = None  # rechte Liste zum Mergen
-    st.session_state.merged = []  # aktuell gemergte Liste
-    st.session_state.i = 0  # Index in linker Liste
-    st.session_state.j = 0  # Index in rechter Liste
-    st.session_state.stage = "select_merge"  # Status: "select_merge", "compare", "finished"
+    st.session_state.lists = init_sort_lists(books)
+    st.session_state.left = None
+    st.session_state.right = None
+    st.session_state.merged = []
+    st.session_state.i = 0
+    st.session_state.j = 0
+    st.session_state.stage = "select_merge"
 
-# --- Hilfsfunktion: starte nächsten Merge Schritt ---
 def start_next_merge():
     if len(st.session_state.lists) == 1:
         st.session_state.stage = "finished"
@@ -49,7 +46,6 @@ def start_next_merge():
     st.session_state.j = 0
     st.session_state.stage = "compare"
 
-# --- Vergleich anzeigen und Ergebnis speichern ---
 def do_compare(choice):
     if choice == "left":
         st.session_state.merged.append(st.session_state.left[st.session_state.i])
@@ -58,23 +54,17 @@ def do_compare(choice):
         st.session_state.merged.append(st.session_state.right[st.session_state.j])
         st.session_state.j += 1
 
-    # Prüfen, ob linke oder rechte Liste erschöpft ist
     if st.session_state.i >= len(st.session_state.left):
-        # Rest der rechten Liste anhängen
         st.session_state.merged.extend(st.session_state.right[st.session_state.j:])
-        # Merge abgeschlossen, Ergebnis speichern
         st.session_state.lists.insert(0, st.session_state.merged)
         st.session_state.stage = "select_merge"
     elif st.session_state.j >= len(st.session_state.right):
-        # Rest der linken Liste anhängen
         st.session_state.merged.extend(st.session_state.left[st.session_state.i:])
-        # Merge abgeschlossen, Ergebnis speichern
         st.session_state.lists.insert(0, st.session_state.merged)
         st.session_state.stage = "select_merge"
 
     st.rerun()
 
-# --- UI und Logik ---
 if st.session_state.stage == "finished":
     st.success("🎉 Das Ranking ist fertig!")
     for idx, book in enumerate(st.session_state.lists[0], 1):
@@ -86,13 +76,12 @@ if st.session_state.stage == "finished":
 
 elif st.session_state.stage == "select_merge":
     if len(st.session_state.lists) == 1:
-        # Fertig sortiert
         st.session_state.stage = "finished"
         st.rerun()
     else:
-        st.write(f"🔄 Merge Schritt: {len(st.session_state.lists)} Teillisten zusammenführen")
-        if st.button("Starte den Test"):
-            start_next_merge()
+        # Automatisch nächsten Merge starten
+        start_next_merge()
+        st.rerun()
 
 elif st.session_state.stage == "compare":
     left_book = st.session_state.left[st.session_state.i]
