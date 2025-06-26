@@ -58,12 +58,17 @@ if len(st.session_state.candidates) >= 2:
             st.session_state.candidates = st.session_state.candidates[2:] + [book1]
             st.rerun()
 else:
+    # Falls 1 Buch übrig ist, hänge es ans Ende
+    if len(st.session_state.candidates) == 1:
+        st.session_state.ranked.append(st.session_state.candidates[0])
+        st.session_state.candidates = []
+
     st.success("🎉 Dein Ranking ist fertig!")
     st.subheader("📊 Dein Buch-Ranking:")
     for i, book in enumerate(st.session_state.ranked, 1):
         st.markdown(f"**{i}.** {book}")
 
-    if st.button("Neu starten"):
+    if st.button("🔄 Neu starten"):
         del st.session_state["candidates"]
         del st.session_state["ranked"]
         st.rerun()
