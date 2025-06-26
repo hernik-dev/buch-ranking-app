@@ -1,5 +1,6 @@
 import streamlit as st
 
+# Liste der Bücher
 books = [
     "Air – Christian Kracht",
     "Menschenwerk – Han Kang",
@@ -21,7 +22,7 @@ books = [
     "Train Dreams – Denis Johnson"
 ]
 
-st.title("📚 Buch-Ranking mit möglichst wenig Vergleichen")
+st.title("📚 Buch-Ranking mit möglichst wenigen Vergleichen")
 
 # ---------------------------
 # Hilfsfunktionen
@@ -74,7 +75,7 @@ def do_choice(choice):
 
     st.session_state.count += 1
 
-    # Rest anhängen
+    # Wenn ein Teil aufgebraucht ist, Rest anhängen und nächsten Schritt laden
     if op["i"] >= len(op["left"]):
         op["result"].extend(op["right"][op["j"]:])
         st.session_state.current = None
@@ -83,8 +84,52 @@ def do_choice(choice):
         st.session_state.current = None
 
 # ---------------------------
-# Merge Schritt fortsetzen
+# Merge-Schritt starten
 # ---------------------------
 
 if not st.session_state.finished:
-    if st.session_state.current is None and st.session_state.
+    if st.session_state.current is None:
+        if st.session_state.merges:
+            st.session_state.current = st.session_state.merges.pop(0)
+        else:
+            st.session_state.finished = True
+            st.session_state.result = st.session_state.current["result"] if st.session_state.current else []
+
+# ---------------------------
+# UI
+# ---------------------------
+
+if st.session_state.finished:
+    st.success("🎉 Dein Ranking ist fertig!")
+    for i, book in enumerate(st.session_state.result, 1):
+        st.markdown(f"**{i}.** {book}")
+
+    if st.button("🔁 Neu starten"):
+        for key in ["merges", "current", "result", "finished", "count"]:
+            del st.session_state[key]
+        st.rerun()
+
+elif st.session_state.current:
+    op = st.session_state.current
+    if op["i"] < len(op["left"]) and op["j"] < len(op["right"]):
+        a = op["left"][op["i"]]
+        b = op["right"][op["j"]]
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button(a):
+                do_choice("left")
+                st.rerun()
+        with col2:
+            if st.button(b):
+                do_choice("right")
+                st.rerun()
+        st.info(f"Vergleiche bisher: {st.session_state.count}")
+    else:
+        # Falls noch etwas übrig ist, anhängen
+        op["result"].extend(op["left"][op["i"]:])
+        op["result"].extend(op["right"][op["j"]:])
+        st.session_state.current = None
+        if not st.session_state.merges:
+            st.session_state.finished = True
+            st.session_state.result = op["result"]
+        st.rerun()
