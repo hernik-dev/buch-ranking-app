@@ -1,6 +1,5 @@
 import streamlit as st
 
-# Bücherliste
 books = [
     "Air – Christian Kracht",
     "Menschenwerk – Han Kang",
@@ -22,15 +21,14 @@ books = [
     "Train Dreams – Denis Johnson"
 ]
 
-st.title("📚 Effizientes Buch-Ranking per interaktivem Sortieren")
+st.title("📚 Buch-Ranking mit möglichst wenig Vergleichen")
 
-# -------------------------------------------
-# Merge-Sort als Stack-basierte Simulation
-# -------------------------------------------
+# ---------------------------
+# Hilfsfunktionen
+# ---------------------------
 
-def merge(left, right):
+def merge_step(left, right):
     return {
-        "type": "merge",
         "left": left,
         "right": right,
         "result": [],
@@ -38,13 +36,55 @@ def merge(left, right):
         "j": 0
     }
 
-def init_sort(lst):
-    stack = []
-    for book in lst:
-        stack.append([book])
-    ops = []
+def prepare_merges(items):
+    stack = [[item] for item in items]
+    merges = []
+
     while len(stack) > 1:
         a = stack.pop()
         b = stack.pop()
-        ops.append(merge(b, a))  # Reihenfolge beachten
-    return ops[::-1]  # umgekehrte Reihenf
+        merges.append(merge_step(b, a))
+        stack.append(b + a)
+
+    return merges[::-1]  # erste Vergleiche zuerst
+
+# ---------------------------
+# Initialisierung
+# ---------------------------
+
+if "merges" not in st.session_state:
+    st.session_state.merges = prepare_merges(books)
+    st.session_state.current = None
+    st.session_state.result = None
+    st.session_state.finished = False
+    st.session_state.count = 0
+
+# ---------------------------
+# Vergleichslogik
+# ---------------------------
+
+def do_choice(choice):
+    op = st.session_state.current
+    if choice == "left":
+        op["result"].append(op["left"][op["i"]])
+        op["i"] += 1
+    else:
+        op["result"].append(op["right"][op["j"]])
+        op["j"] += 1
+
+    st.session_state.count += 1
+
+    # Rest anhängen
+    if op["i"] >= len(op["left"]):
+        op["result"].extend(op["right"][op["j"]:])
+        st.session_state.current = None
+    elif op["j"] >= len(op["right"]):
+        op["result"].extend(op["left"][op["i"]:])
+        st.session_state.current = None
+
+# ---------------------------
+# Merge Schritt fortsetzen
+# ---------------------------
+
+if not st.session_state.finished:
+    if st.session_state.current is None and st.session_state.
