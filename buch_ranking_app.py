@@ -1,7 +1,5 @@
 import streamlit as st
 
-st.title("📚 Buchclub: The Ranking")
-
 books = [
     "Air – Christian Kracht",
     "Menschenwerk – Han Kang",
@@ -23,92 +21,87 @@ books = [
     "Train Dreams – Denis Johnson"
 ]
 
-def merge_step(left, right):
-    return {"left": left, "right": right, "result": [], "i": 0, "j": 0}
+st.title("📚 Buchclub: The Ranking")
 
-def prepare_merges(items):
-    stack = [[item] for item in items]
-    merges = []
-    while len(stack) > 1:
-        a = stack.pop()
-        b = stack.pop()
-        merges.append(merge_step(b, a))
-        stack.append(b + a)
-    return merges[::-1]
+# --- Hilfsfunktion: initiale Liste in Einzel-Listen packen ---
+def init_sort_lists(items):
+    return [[item] for item in items]
 
-if "merges" not in st.session_state:
-    st.session_state.merges = prepare_merges(books)
-    st.session_state.current = None
-    st.session_state.result = []
-    st.session_state.finished = False
-    st.session_state.count = 0
+# --- State-Initialisierung ---
+if "lists" not in st.session_state:
+    st.session_state.lists = init_sort_lists(books)  # Liste von Listen (Teil-Sortierungen)
+    st.session_state.left = None  # linke Liste zum Mergen
+    st.session_state.right = None  # rechte Liste zum Mergen
+    st.session_state.merged = []  # aktuell gemergte Liste
+    st.session_state.i = 0  # Index in linker Liste
+    st.session_state.j = 0  # Index in rechter Liste
+    st.session_state.stage = "select_merge"  # Status: "select_merge", "compare", "finished"
 
-def do_choice(choice):
-    op = st.session_state.current
+# --- Hilfsfunktion: starte nächsten Merge Schritt ---
+def start_next_merge():
+    if len(st.session_state.lists) == 1:
+        st.session_state.stage = "finished"
+        return
+    st.session_state.left = st.session_state.lists.pop(0)
+    st.session_state.right = st.session_state.lists.pop(0)
+    st.session_state.merged = []
+    st.session_state.i = 0
+    st.session_state.j = 0
+    st.session_state.stage = "compare"
+
+# --- Vergleich anzeigen und Ergebnis speichern ---
+def do_compare(choice):
     if choice == "left":
-        op["result"].append(op["left"][op["i"]])
-        op["i"] += 1
+        st.session_state.merged.append(st.session_state.left[st.session_state.i])
+        st.session_state.i += 1
     else:
-        op["result"].append(op["right"][op["j"]])
-        op["j"] += 1
-    st.session_state.count += 1
-    if op["i"] >= len(op["left"]):
-        op["result"].extend(op["right"][op["j"]:])
-        st.session_state.current = None
-    elif op["j"] >= len(op["right"]):
-        op["result"].extend(op["left"][op["i"]:])
-        st.session_state.current = None
+        st.session_state.merged.append(st.session_state.right[st.session_state.j])
+        st.session_state.j += 1
 
-# Debug-Ausgabe
-st.sidebar.header("🔍 Debug Info")
-st.sidebar.write(f"Finished: {st.session_state.finished}")
-st.sidebar.write(f"Current: {st.session_state.current}")
-st.sidebar.write(f"Remaining Merges: {len(st.session_state.merges)}")
-st.sidebar.write(f"Count: {st.session_state.count}")
-st.sidebar.write(f"Result (len={len(st.session_state.result)}): {st.session_state.result}")
+    # Prüfen, ob linke oder rechte Liste erschöpft ist
+    if st.session_state.i >= len(st.session_state.left):
+        # Rest der rechten Liste anhängen
+        st.session_state.merged.extend(st.session_state.right[st.session_state.j:])
+        # Merge abgeschlossen, Ergebnis speichern
+        st.session_state.lists.insert(0, st.session_state.merged)
+        st.session_state.stage = "select_merge"
+    elif st.session_state.j >= len(st.session_state.right):
+        # Rest der linken Liste anhängen
+        st.session_state.merged.extend(st.session_state.left[st.session_state.i:])
+        # Merge abgeschlossen, Ergebnis speichern
+        st.session_state.lists.insert(0, st.session_state.merged)
+        st.session_state.stage = "select_merge"
 
-if not st.session_state.finished:
-    if st.session_state.current is None:
-        if st.session_state.merges:
-            st.session_state.current = st.session_state.merges.pop(0)
-        else:
-            if not st.session_state.result:
-                # Fallback auf Original-Liste, falls Ergebnis leer
-                st.session_state.result = books
-            st.session_state.finished = True
+    st.experimental_rerun()
 
-if st.session_state.finished:
-    st.success("🎉 Dein Ranking ist fertig!")
-    if st.session_state.result:
-        for i, book in enumerate(st.session_state.result, 1):
-            st.markdown(f"**{i}.** {book}")
+# --- UI und Logik ---
+if st.session_state.stage == "finished":
+    st.success("🎉 Das Ranking ist fertig!")
+    for idx, book in enumerate(st.session_state.lists[0], 1):
+        st.markdown(f"**{idx}.** {book}")
+    if st.button("🔄 Neu starten"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.experimental_rerun()
+
+elif st.session_state.stage == "select_merge":
+    if len(st.session_state.lists) == 1:
+        # Fertig sortiert
+        st.session_state.stage = "finished"
+        st.experimental_rerun()
     else:
-        st.write("Keine Ergebnisse vorhanden.")
-    if st.button("🔁 Neu starten"):
-        for key in ["merges", "current", "result", "finished", "count"]:
-            if key in st.session_state:
-                del st.session_state[key]
-        st.rerun()
-elif st.session_state.current:
-    op = st.session_state.current
-    if op["i"] < len(op["left"]) and op["j"] < len(op["right"]):
-        a = op["left"][op["i"]]
-        b = op["right"][op["j"]]
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button(a, key="left_button"):
-                do_choice("left")
-                st.rerun()
-        with col2:
-            if st.button(b, key="right_button"):
-                do_choice("right")
-                st.rerun()
-        st.info(f"Vergleiche bisher: {st.session_state.count}")
-    else:
-        op["result"].extend(op["left"][op["i"]:])
-        op["result"].extend(op["right"][op["j"]:])
-        st.session_state.result = op["result"]
-        st.session_state.current = None
-        if not st.session_state.merges:
-            st.session_state.finished = True
-        st.rerun()
+        st.write(f"🔄 Merge Schritt: {len(st.session_state.lists)} Teillisten zusammenführen")
+        if st.button("Starte nächsten Merge"):
+            start_next_merge()
+
+elif st.session_state.stage == "compare":
+    left_book = st.session_state.left[st.session_state.i]
+    right_book = st.session_state.right[st.session_state.j]
+    st.write("Welches Buch findest du besser?")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button(left_book):
+            do_compare("left")
+    with col2:
+        if st.button(right_book):
+            do_compare("right")
