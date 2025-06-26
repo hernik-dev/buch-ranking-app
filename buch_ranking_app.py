@@ -67,4 +67,4 @@ else:
     if st.button("Neu starten"):
         del st.session_state["candidates"]
         del st.session_state["ranked"]
-        st.experimental_rerun()
+        st.rerun()
