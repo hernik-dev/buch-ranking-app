@@ -22,7 +22,7 @@ books = [
     "Train Dreams – Denis Johnson"
 ]
 
-st.title("📚 Buch-Ranking mit möglichst wenigen Vergleichen")
+st.title("📚 Das große Buch-Ranking ")
 
 # ---------------------------
 # Hilfsfunktionen
@@ -125,10 +125,11 @@ elif st.session_state.current:
                 st.rerun()
         st.info(f"Vergleiche bisher: {st.session_state.count}")
     else:
-        # Falls noch etwas übrig ist, anhängen
+        # Letzten Merge-Schritt beenden
         op["result"].extend(op["left"][op["i"]:])
         op["result"].extend(op["right"][op["j"]:])
         st.session_state.current = None
+
         if not st.session_state.merges:
             st.session_state.finished = True
             st.session_state.result = op["result"]
