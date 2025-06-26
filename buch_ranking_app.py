@@ -43,22 +43,35 @@ def do_choice(choice):
         op["result"].extend(op["left"][op["i"]:])
         st.session_state.current = None
 
+# Debug-Ausgabe aktueller Session State
+st.sidebar.header("🔍 Debug Info")
+st.sidebar.write(f"Finished: {st.session_state.finished}")
+st.sidebar.write(f"Current: {st.session_state.current}")
+st.sidebar.write(f"Remaining Merges: {len(st.session_state.merges)}")
+st.sidebar.write(f"Count: {st.session_state.count}")
+st.sidebar.write(f"Result (len={len(st.session_state.result)}): {st.session_state.result}")
+
 if not st.session_state.finished:
     if st.session_state.current is None:
         if st.session_state.merges:
             st.session_state.current = st.session_state.merges.pop(0)
         else:
-            st.session_state.finished = True
-            if st.session_state.current is not None:
+            # Alle Merges fertig
+            if not st.session_state.result and st.session_state.current is not None:
                 st.session_state.result = st.session_state.current["result"]
+            st.session_state.finished = True
 
 if st.session_state.finished:
     st.success("🎉 Dein Ranking ist fertig!")
-    for i, book in enumerate(st.session_state.result, 1):
-        st.markdown(f"**{i}.** {book}")
+    if st.session_state.result:
+        for i, book in enumerate(st.session_state.result, 1):
+            st.markdown(f"**{i}.** {book}")
+    else:
+        st.write("Keine Ergebnisse vorhanden.")
     if st.button("🔁 Neu starten"):
         for key in ["merges", "current", "result", "finished", "count"]:
-            del st.session_state[key]
+            if key in st.session_state:
+                del st.session_state[key]
         st.rerun()
 elif st.session_state.current:
     op = st.session_state.current
@@ -76,9 +89,10 @@ elif st.session_state.current:
                 st.rerun()
         st.info(f"Vergleiche bisher: {st.session_state.count}")
     else:
+        # Ende dieses Merge-Schrittes, Rest anhängen
         op["result"].extend(op["left"][op["i"]:])
         op["result"].extend(op["right"][op["j"]:])
-        st.session_state.result = op["result"]  # WICHTIG
+        st.session_state.result = op["result"]  # Wichtig!
         st.session_state.current = None
         if not st.session_state.merges:
             st.session_state.finished = True
