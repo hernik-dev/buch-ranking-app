@@ -1,11 +1,26 @@
 import streamlit as st
 
+st.title("📚 Buchclub: The Ranking")
+
 books = [
     "Air – Christian Kracht",
     "Menschenwerk – Han Kang",
     "Trophäe – Gaea Schoeters",
     "The Rabbit Hutch – Tess Gunty",
-   
+    "I Know Why the Caged Bird Sings – Maya Angelou",
+    "The Sound and the Fury – William Faulkner",
+    "Die Jahre – Annie Ernaux",
+    "A Visit from the Goon Squad – Jennifer Egan",
+    "Elementarteilchen – Michel Houellebecq",
+    "Der falsche Gruß – Maxim Biller",
+    "Ein Tag im Leben des Iwan Denissowitsch – Alexander Solschenizyn",
+    "Eurotrash – Christian Kracht",
+    "Unterleuten – Juli Zeh",
+    "Der Trafikant – Robert Seethaler",
+    "Heart of Darkness – Joseph Conrad",
+    "Möchte die Witwe ... – Saša Stanišić",
+    "Die Möglichkeit von Glück – Anne Rabe",
+    "Train Dreams – Denis Johnson"
 ]
 
 def merge_step(left, right):
