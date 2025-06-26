@@ -44,19 +44,18 @@ if len(st.session_state.candidates) >= 2:
 
     st.write("Welches Buch gefällt dir besser?")
     col1, col2 = st.columns(2)
+
     with col1:
         if st.button(book1):
-            st.session_state.ranked.insert(0, book1)
-            st.session_state.candidates.pop(0)
-            st.session_state.candidates.pop(0)
-            compare_next()
+            st.session_state.ranked.append(book1)
+            # Der Verlierer kommt zurück ans Ende der Liste
+            st.session_state.candidates = st.session_state.candidates[2:] + [book2]
             st.rerun()
+
     with col2:
         if st.button(book2):
-            st.session_state.ranked.insert(0, book2)
-            st.session_state.candidates.pop(1)
-            st.session_state.candidates.pop(0)
-            compare_next()
+            st.session_state.ranked.append(book2)
+            st.session_state.candidates = st.session_state.candidates[2:] + [book1]
             st.rerun()
 else:
     st.success("🎉 Dein Ranking ist fertig!")
