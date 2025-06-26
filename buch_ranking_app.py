@@ -5,6 +5,20 @@ books = [
     "Menschenwerk – Han Kang",
     "Trophäe – Gaea Schoeters",
     "The Rabbit Hutch – Tess Gunty",
+    "I Know Why the Caged Bird Sings – Maya Angelou",
+    "The Sound and the Fury – William Faulkner",
+    "Die Jahre – Annie Ernaux",
+    "A Visit from the Goon Squad – Jennifer Egan",
+    "Elementarteilchen – Michel Houellebecq",
+    "Der falsche Gruß – Maxim Biller",
+    "Ein Tag im Leben des Iwan Denissowitsch – Alexander Solschenizyn",
+    "Eurotrash – Christian Kracht",
+    "Unterleuten – Juli Zeh",
+    "Der Trafikant – Robert Seethaler",
+    "Heart of Darkness – Joseph Conrad",
+    "Möchte die Witwe ... – Saša Stanišić",
+    "Die Möglichkeit von Glück – Anne Rabe",
+    "Train Dreams – Denis Johnson"
 ]
 
 def merge_step(left, right):
@@ -49,7 +63,6 @@ if not st.session_state.finished:
             st.session_state.current = st.session_state.merges.pop(0)
         else:
             st.session_state.finished = True
-            # Wenn current None, dann result bleibt so
             if st.session_state.current is not None:
                 st.session_state.result = st.session_state.current["result"]
 
@@ -68,18 +81,18 @@ elif st.session_state.current:
         b = op["right"][op["j"]]
         col1, col2 = st.columns(2)
         with col1:
-            if st.button(a):
+            if st.button(a, key="left_button"):
                 do_choice("left")
                 st.experimental_rerun()
         with col2:
-            if st.button(b):
+            if st.button(b, key="right_button"):
                 do_choice("right")
                 st.experimental_rerun()
         st.info(f"Vergleiche bisher: {st.session_state.count}")
     else:
         op["result"].extend(op["left"][op["i"]:])
         op["result"].extend(op["right"][op["j"]:])
-        st.session_state.result = op["result"]  # Wichtig!
+        st.session_state.result = op["result"]  # WICHTIG
         st.session_state.current = None
         if not st.session_state.merges:
             st.session_state.finished = True
