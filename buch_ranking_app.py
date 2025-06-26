@@ -1,7 +1,6 @@
 import streamlit as st
-import random
 
-# Bücherliste
+# Liste deiner Bücher (kann erweitert/geändert werden)
 books = [
     "Air – Christian Kracht",
     "Menschenwerk – Han Kang",
@@ -23,52 +22,42 @@ books = [
     "Train Dreams – Denis Johnson"
 ]
 
-st.set_page_config(page_title="Buch-Ranking", layout="centered")
-st.title("📚 Dein persönliches Buch-Ranking")
-
 # Initialisierung
-if "candidates" not in st.session_state:
-    st.session_state.candidates = books.copy()
-    random.shuffle(st.session_state.candidates)
-    st.session_state.ranked = []
+if "rounds" not in st.session_state:
+    st.session_state.remaining = [(a, b) for i, a in enumerate(books) for b in books[i+1:]]
+    st.session_state.scores = {book: 0 for book in books}
+    st.session_state.rounds = 0
 
-# Vergleichsfunktion mit einfachem Bubble-Sort-Ansatz
-def compare_next():
-    if len(st.session_state.candidates) <= 1:
-        st.session_state.ranked = st.session_state.candidates + st.session_state.ranked
-        st.session_state.candidates = []
+st.title("📚 Buch-Ranking per Paarvergleich")
+st.write("Vergleiche jeweils zwei Bücher und wähle deinen Favoriten. So entsteht ein konsistentes Ranking aller Bücher.")
 
-if len(st.session_state.candidates) >= 2:
-    book1 = st.session_state.candidates[0]
-    book2 = st.session_state.candidates[1]
-
-    st.write("Welches Buch gefällt dir besser?")
+if st.session_state.remaining:
+    book1, book2 = st.session_state.remaining[0]
     col1, col2 = st.columns(2)
 
     with col1:
         if st.button(book1):
-            st.session_state.ranked.append(book1)
-            # Der Verlierer kommt zurück ans Ende der Liste
-            st.session_state.candidates = st.session_state.candidates[2:] + [book2]
+            st.session_state.scores[book1] += 1
+            st.session_state.remaining.pop(0)
+            st.session_state.rounds += 1
             st.rerun()
 
     with col2:
         if st.button(book2):
-            st.session_state.ranked.append(book2)
-            st.session_state.candidates = st.session_state.candidates[2:] + [book1]
+            st.session_state.scores[book2] += 1
+            st.session_state.remaining.pop(0)
+            st.session_state.rounds += 1
             st.rerun()
-else:
-    # Falls 1 Buch übrig ist, hänge es ans Ende
-    if len(st.session_state.candidates) == 1:
-        st.session_state.ranked.append(st.session_state.candidates[0])
-        st.session_state.candidates = []
 
-    st.success("🎉 Dein Ranking ist fertig!")
-    st.subheader("📊 Dein Buch-Ranking:")
-    for i, book in enumerate(st.session_state.ranked, 1):
-        st.markdown(f"**{i}.** {book}")
+    st.info(f"Vergleiche abgeschlossen: {st.session_state.rounds} / {len(books) * (len(books) - 1) // 2}")
+else:
+    st.success("🎉 Alle Vergleiche abgeschlossen!")
+    st.subheader("📊 Dein Ranking:")
+    sorted_books = sorted(st.session_state.scores.items(), key=lambda x: x[1], reverse=True)
+    for i, (book, score) in enumerate(sorted_books, 1):
+        st.markdown(f"**{i}.** {book} ({score} Punkte)")
 
     if st.button("🔄 Neu starten"):
-        del st.session_state["candidates"]
-        del st.session_state["ranked"]
+        for key in ["remaining", "scores", "rounds"]:
+            del st.session_state[key]
         st.rerun()
