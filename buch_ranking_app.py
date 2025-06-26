@@ -5,20 +5,6 @@ books = [
     "Menschenwerk – Han Kang",
     "Trophäe – Gaea Schoeters",
     "The Rabbit Hutch – Tess Gunty",
-    "I Know Why the Caged Bird Sings – Maya Angelou",
-    "The Sound and the Fury – William Faulkner",
-    "Die Jahre – Annie Ernaux",
-    "A Visit from the Goon Squad – Jennifer Egan",
-    "Elementarteilchen – Michel Houellebecq",
-    "Der falsche Gruß – Maxim Biller",
-    "Ein Tag im Leben des Iwan Denissowitsch – Alexander Solschenizyn",
-    "Eurotrash – Christian Kracht",
-    "Unterleuten – Juli Zeh",
-    "Der Trafikant – Robert Seethaler",
-    "Heart of Darkness – Joseph Conrad",
-    "Möchte die Witwe ... – Saša Stanišić",
-    "Die Möglichkeit von Glück – Anne Rabe",
-    "Train Dreams – Denis Johnson"
 ]
 
 def merge_step(left, right):
@@ -73,7 +59,7 @@ if st.session_state.finished:
     if st.button("🔁 Neu starten"):
         for key in ["merges", "current", "result", "finished", "count"]:
             del st.session_state[key]
-        st.experimental_rerun()
+        st.rerun()
 elif st.session_state.current:
     op = st.session_state.current
     if op["i"] < len(op["left"]) and op["j"] < len(op["right"]):
@@ -83,11 +69,11 @@ elif st.session_state.current:
         with col1:
             if st.button(a, key="left_button"):
                 do_choice("left")
-                st.experimental_rerun()
+                st.rerun()
         with col2:
             if st.button(b, key="right_button"):
                 do_choice("right")
-                st.experimental_rerun()
+                st.rerun()
         st.info(f"Vergleiche bisher: {st.session_state.count}")
     else:
         op["result"].extend(op["left"][op["i"]:])
@@ -96,4 +82,4 @@ elif st.session_state.current:
         st.session_state.current = None
         if not st.session_state.merges:
             st.session_state.finished = True
-        st.experimental_rerun()
+        st.rerun()
