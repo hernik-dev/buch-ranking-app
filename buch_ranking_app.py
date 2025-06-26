@@ -72,7 +72,7 @@ def do_compare(choice):
         st.session_state.lists.insert(0, st.session_state.merged)
         st.session_state.stage = "select_merge"
 
-    st.experimental_rerun()
+    st.rerun()
 
 # --- UI und Logik ---
 if st.session_state.stage == "finished":
@@ -82,16 +82,16 @@ if st.session_state.stage == "finished":
     if st.button("🔄 Neu starten"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
-        st.experimental_rerun()
+        st.rerun()
 
 elif st.session_state.stage == "select_merge":
     if len(st.session_state.lists) == 1:
         # Fertig sortiert
         st.session_state.stage = "finished"
-        st.experimental_rerun()
+        st.rerun()
     else:
         st.write(f"🔄 Merge Schritt: {len(st.session_state.lists)} Teillisten zusammenführen")
-        if st.button("Starte nächsten Merge"):
+        if st.button("Starte den Test"):
             start_next_merge()
 
 elif st.session_state.stage == "compare":
