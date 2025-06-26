@@ -50,14 +50,14 @@ if len(st.session_state.candidates) >= 2:
             st.session_state.candidates.pop(0)
             st.session_state.candidates.pop(0)
             compare_next()
-            st.experimental_rerun()
+            st.rerun()
     with col2:
         if st.button(book2):
             st.session_state.ranked.insert(0, book2)
             st.session_state.candidates.pop(1)
             st.session_state.candidates.pop(0)
             compare_next()
-            st.experimental_rerun()
+            st.rerun()
 else:
     st.success("🎉 Dein Ranking ist fertig!")
     st.subheader("📊 Dein Buch-Ranking:")
