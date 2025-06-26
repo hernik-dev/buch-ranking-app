@@ -1,6 +1,6 @@
 import streamlit as st
 
-# Liste deiner Bücher (kann erweitert/geändert werden)
+# Liste deiner Bücher
 books = [
     "Air – Christian Kracht",
     "Menschenwerk – Han Kang",
@@ -22,42 +22,99 @@ books = [
     "Train Dreams – Denis Johnson"
 ]
 
+# ---------------------
+# Interaktiver MergeSort
+# ---------------------
+
+def merge_sort(lst):
+    if len(lst) <= 1:
+        return lst
+    mid = len(lst) // 2
+    left = merge_sort(lst[:mid])
+    right = merge_sort(lst[mid:])
+    return list(merge_gen(left, right))
+
+def merge_gen(left, right):
+    result = []
+    i = j = 0
+    while i < len(left) and j < len(right):
+        yield ("compare", left[i], right[j])
+        response = yield
+        if response == "left":
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+    result.extend(left[i:])
+    result.extend(right[j:])
+    yield ("merged", result)
+
+# ---------------------
+# Streamlit UI
+# ---------------------
+
+st.title("📚 Effizientes Buch-Ranking per interaktivem Sortieren")
+
 # Initialisierung
-if "rounds" not in st.session_state:
-    st.session_state.remaining = [(a, b) for i, a in enumerate(books) for b in books[i+1:]]
-    st.session_state.scores = {book: 0 for book in books}
-    st.session_state.rounds = 0
+if "sort_stack" not in st.session_state:
+    st.session_state.original_books = books.copy()
+    st.session_state.generator_stack = merge_gen(books[:len(books)//2], books[len(books)//2:])
+    st.session_state.merge_result = []
+    st.session_state.last_pair = None
+    st.session_state.decision_count = 0
 
-st.title("📚 Buch-Ranking per Paarvergleich")
-st.write("Vergleiche jeweils zwei Bücher und wähle deinen Favoriten. So entsteht ein konsistentes Ranking aller Bücher.")
+# Merge-Schritt
+gen = st.session_state.generator_stack
 
-if st.session_state.remaining:
-    book1, book2 = st.session_state.remaining[0]
+# Vorschlag anzeigen
+try:
+    if st.session_state.last_pair is None:
+        instruction = next(gen)
+        if instruction[0] == "compare":
+            st.session_state.last_pair = (instruction[1], instruction[2])
+        elif instruction[0] == "merged":
+            st.session_state.merge_result = instruction[1]
+            st.session_state.last_pair = None
+except StopIteration:
+    pass
+
+# Vergleichsanzeige
+if st.session_state.last_pair:
+    a, b = st.session_state.last_pair
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button(book1):
-            st.session_state.scores[book1] += 1
-            st.session_state.remaining.pop(0)
-            st.session_state.rounds += 1
-            st.rerun()
+        if st.button(a):
+            try:
+                gen.send("left")
+                st.session_state.last_pair = None
+                st.session_state.decision_count += 1
+                st.rerun()
+            except StopIteration:
+                pass
 
     with col2:
-        if st.button(book2):
-            st.session_state.scores[book2] += 1
-            st.session_state.remaining.pop(0)
-            st.session_state.rounds += 1
-            st.rerun()
+        if st.button(b):
+            try:
+                gen.send("right")
+                st.session_state.last_pair = None
+                st.session_state.decision_count += 1
+                st.rerun()
+            except StopIteration:
+                pass
 
-    st.info(f"Vergleiche abgeschlossen: {st.session_state.rounds} / {len(books) * (len(books) - 1) // 2}")
-else:
-    st.success("🎉 Alle Vergleiche abgeschlossen!")
+    st.info(f"Vergleiche abgeschlossen: {st.session_state.decision_count}")
+
+# Fertiges Ranking anzeigen
+elif st.session_state.merge_result:
+    st.success("🎉 Ranking abgeschlossen!")
     st.subheader("📊 Dein Ranking:")
-    sorted_books = sorted(st.session_state.scores.items(), key=lambda x: x[1], reverse=True)
-    for i, (book, score) in enumerate(sorted_books, 1):
-        st.markdown(f"**{i}.** {book} ({score} Punkte)")
+    for i, book in enumerate(st.session_state.merge_result, 1):
+        st.markdown(f"**{i}.** {book}")
 
     if st.button("🔄 Neu starten"):
-        for key in ["remaining", "scores", "rounds"]:
-            del st.session_state[key]
+        for key in ["sort_stack", "merge_result", "last_pair", "decision_count", "original_books", "generator_stack"]:
+            if key in st.session_state:
+                del st.session_state[key]
         st.rerun()
