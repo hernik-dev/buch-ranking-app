@@ -5,6 +5,7 @@ books = [
     "Menschenwerk – Han Kang",
     "Trophäe – Gaea Schoeters",
     "The Rabbit Hutch – Tess Gunty",
+   
 ]
 
 def merge_step(left, right):
@@ -43,7 +44,7 @@ def do_choice(choice):
         op["result"].extend(op["left"][op["i"]:])
         st.session_state.current = None
 
-# Debug-Ausgabe aktueller Session State
+# Debug-Ausgabe
 st.sidebar.header("🔍 Debug Info")
 st.sidebar.write(f"Finished: {st.session_state.finished}")
 st.sidebar.write(f"Current: {st.session_state.current}")
@@ -56,9 +57,9 @@ if not st.session_state.finished:
         if st.session_state.merges:
             st.session_state.current = st.session_state.merges.pop(0)
         else:
-            # Alle Merges fertig
-            if not st.session_state.result and st.session_state.current is not None:
-                st.session_state.result = st.session_state.current["result"]
+            if not st.session_state.result:
+                # Fallback auf Original-Liste, falls Ergebnis leer
+                st.session_state.result = books
             st.session_state.finished = True
 
 if st.session_state.finished:
@@ -89,10 +90,9 @@ elif st.session_state.current:
                 st.rerun()
         st.info(f"Vergleiche bisher: {st.session_state.count}")
     else:
-        # Ende dieses Merge-Schrittes, Rest anhängen
         op["result"].extend(op["left"][op["i"]:])
         op["result"].extend(op["right"][op["j"]:])
-        st.session_state.result = op["result"]  # Wichtig!
+        st.session_state.result = op["result"]
         st.session_state.current = None
         if not st.session_state.merges:
             st.session_state.finished = True
