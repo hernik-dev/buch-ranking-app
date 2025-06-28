@@ -4,6 +4,7 @@ books = [
     "Air – Christian Kracht",
     "Menschenwerk – Han Kang",
     "Trophäe – Gaea Schoeters",
+    "Leonard and Paul – Rónán Hession",
     "The Rabbit Hutch – Tess Gunty",
     "I Know Why the Caged Bird Sings – Maya Angelou",
     "The Sound and the Fury – William Faulkner",
